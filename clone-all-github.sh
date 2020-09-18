@@ -2,9 +2,9 @@
 
 # Clone all user or organization repositories
 
-# cflag: cntx {users | orgs}
-# nflag: username or organization name
-# mflag: max number of pages
+# cntx: users or orgs
+# name: username or organization name
+# max: max number of pages
 
 # HOW TO USE: -c {users | orgs} -n {name} -m {number_of_pages}
 
