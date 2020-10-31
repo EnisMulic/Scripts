@@ -1,1 +1,1 @@
-# home/pancakealchemist/bin
+# Scripts
