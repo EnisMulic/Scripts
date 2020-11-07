@@ -1,25 +1,23 @@
 #!/bin/bash
 
-# Clone all user or organization repositories
+############################################################################
+#
+# Usage: clone-all-github.sh [option] name pages
+#
+# Clone all github repositories from a single user or organization 
+#
+# Options:
+#  users
+#  orgs
+#
+# Limitations: 
+#  . only one option should be given
+#
+############################################################################
 
-# cntx: users or orgs
-# name: username or organization name
-# max: max number of pages
-
-# HOW TO USE: -c {users | orgs} -n {name} -m {number_of_pages}
-
-cntx=''
-name=''
-max=''
-
-while getopts 'c:n:m:' flag; do
-  case "${flag}" in
-    c) cntx="${OPTARG}" ;;
-    n) name="${OPTARG}" ;;
-    m) max="${OPTARG}" ;;
-    *) error "Unexpected option ${flag}" ;;
-  esac
-done
+cntx=$1
+name=$2
+max=$3
 
 page=1
 
