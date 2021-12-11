@@ -1,5 +1,24 @@
 #!/usr/bin/env python
 
+############################################################################
+#
+# Usage: cat config.ini | ini2env.py prefix
+#
+# Create environment variables from a ini configuration file
+#
+# Options:
+#   prefix
+#
+# Example:
+#   config.ini
+#       [section]
+#       key = value
+#   output:
+#       PREFIX_SECTION_KEY=VALUE
+#
+############################################################################
+
+
 import sys, configparser, os
 
 config = configparser.ConfigParser(interpolation=None)
