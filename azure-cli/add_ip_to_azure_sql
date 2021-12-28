@@ -1,6 +1,8 @@
-#!/bin/bash +x
+#!/usr/bin/bash +x
 #
 # Add ip address to firewall rule on azure sql server
+#
+# Usage: add_ip_to_azure_sql section name
 # 
 # Requirments for running the script:
 #   - installe azure cli (https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)

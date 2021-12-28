@@ -1,0 +1,65 @@
+#!/usr/bin/bash +x
+#
+# Monitor Azure Data Factory Pipeline
+#
+# Usage: monitor_adf_pipeline run_id section
+# 
+# Requirments for running the script:
+#   - install azure cli (https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+#   - log in to azure with the azure cli (run az login)
+# 
+# 
+
+section=$(echo $2 | tr '[a-z]' '[A-Z]')
+
+group=$(eval echo "\$AZURE_${section}_GROUP")
+factory_name=$(eval echo "\$AZURE_${section}_FACTORY_NAME")
+
+# --------------------------------------------------------------
+# Gets adf pipeline status
+# Arguments:
+#   Pipeline run id
+# Outputs:
+#   Writes Queued, InProgress, Succeeded, Failed, Canceling or Cancelled to stdout
+# --------------------------------------------------------------
+get_pipeline_status () {
+    pipeline_status=$(az datafactory pipeline-run show \
+        --factory-name $factory_name \
+        --resource-group $group \
+        --run-id $1 \
+        | grep -o -E "\"status\": .+" 
+        | awk -F\: '{print $2}' 
+        | tr -d '"')
+
+    echo $pipeline_status
+}
+
+# --------------------------------------------------------------
+# Monitors the adf pipeline
+# Arguments:
+#   Pipeline run id
+# Outputs:
+#   Pipeline name, pipeline run id and pipeline status to stdout
+# Returns:
+#   0 if the pipeline run succeeded, exits with 1 if the pipeline run failed
+# --------------------------------------------------------------
+wait_for_pipeline_to_finish () {
+    pipeline_name=$1
+    run_id=$2
+
+    while [[ true ]] 
+    do
+        pipeline_status=$(get_pipeline_status $run_id)
+        
+        echo $pipeline_name $run_id $pipeline_status
+        if [[ $pipeline_status == "InProgress" || $pipeline_status == "Queued" ]]; then
+            sleep 60
+	    elif [ $pipeline_status == "Failed" ]; then
+	        exit 1
+        else
+            return 0
+        fi
+    done
+}
+
+wait_for_pipeline_to_finish $1 $2

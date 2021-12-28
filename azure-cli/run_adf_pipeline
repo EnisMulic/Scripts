@@ -1,0 +1,39 @@
+#!/usr/bin/bash +x
+#
+# Monitor Azure Data Factory Pipeline
+#
+# Usage: run_adf_pipeline pipeline_name parameters section
+# 
+# Requirments for running the script:
+#   - install azure cli (https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
+#   - log in to azure with the azure cli (run az login)
+# 
+# 
+
+section=$(echo $3 | tr '[a-z]' '[A-Z]')
+
+group=$(eval echo "\$AZURE_${section}_GROUP")
+factory_name=$(eval echo "\$AZURE_${section}_FACTORY_NAME")
+
+# --------------------------------------------------------------
+# Runs the adf pipeline Daily_Process
+# Arguments:
+#   Username
+#   Market date
+# Returns:
+#   Pipeline run id
+# --------------------------------------------------------------
+run_adf_pipeline () {
+    run_id=$(az datafactory pipeline create-run \
+        --factory-name $factory_name \
+        --resource-group $group \
+        --name $1 \
+        --parameters $2 \
+        | grep -o -E "\"runId\": .+" 
+        | awk -F\: '{print $2}' 
+        | tr -d '"' ) 
+    
+    echo $run_id
+}
+
+run_adf_pipeline $1 $2
