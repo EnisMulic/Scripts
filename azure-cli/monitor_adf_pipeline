@@ -54,7 +54,7 @@ wait_for_pipeline_to_finish () {
         echo $pipeline_name $run_id $pipeline_status
         if [[ $pipeline_status == "InProgress" || $pipeline_status == "Queued" ]]; then
             sleep 60
-	    elif [ $pipeline_status == "Failed" ]; then
+        elif [ $pipeline_status == "Failed" ]; then
 	        exit 1
         else
             return 0
