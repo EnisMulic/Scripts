@@ -1,0 +1,42 @@
+#!/bin/bash
+#
+# Update Azure DevOps Variable Group with Terraform output variables
+#
+# Usage: tf_to_var_group organization project prod-vars
+# 
+# Requirments for running the script:
+#   - azure cli (https://docs.microsoft.com/en-us/cli/azure/install-azure-cli) - installed in Azure Pipeline Runners
+#   - jq (https://jqlang.github.io/jq/) - included in most linux based distros
+# 
+# 
+set -e
+
+export DEVOPS_ORGANIZATION=$1
+export DEVOPS_PROJECT=$2
+export GROUP_NAME=$3
+
+# configure the azure devops cli
+az devops configure --defaults organization=${DEVOPS_ORGANIZATION} project=${DEVOPS_PROJECT} --use-git-aliases true
+
+# get the variable group id (if it exists)
+group_id=$(az pipelines variable-group list --group-name ${GROUP_NAME} --query '[0].id' -o json)
+
+if [ -z "${group_id}" ]; then
+    # create a new variable group if it doesn't exist
+    tf_output=$(terraform output -json | jq -r 'to_entries[] | "\(.key)=\(.value.value)"')
+    az pipelines variable-group create --name ${GROUP_NAME} --variables ${tf_output} --authorize true
+else
+    # create variables with latest values from terraform output
+    for row in $(terraform output -json | jq -c 'to_entries[]'); do
+        _jq()
+        {
+            echo ${row} | jq -r ${1}
+        }
+
+        az pipelines variable-group variable update \
+            --group-id ${group_id} \
+            --name $(_jq '.key') \
+            --value $(_jq '.value.value') \
+            --secret $(_jq '.value.sensitive') 
+    done
+fi
