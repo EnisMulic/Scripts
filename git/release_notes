@@ -1,0 +1,44 @@
+#!/bin/bash
+#
+# Generate release notes from conventional commits by compering two git branches
+#
+# Usage: release_notes v1_branch v2_branch
+# 
+# Requirments for running the script:
+#   - git
+#   - understanding git-flow https://learn.microsoft.com/en-us/devops/develop/how-microsoft-develops-devops
+# 
+# 
+set -e
+
+# Specify the branch names
+export previous_release=$1
+export new_release=$2
+
+# --------------------------------------------------------------
+# Format a git commit to output the conventional commit header 
+# and work items attached to a pull request assosiated with the commit
+# Arguments:
+#   Git hash
+# Returns:
+#   Release entry note, e.g: style(azure-cli): fix identation - #1
+# --------------------------------------------------------------
+process_commit() {
+    commit_hash=$1
+    subject=$(git log --pretty=format:"%s" -n 1 $commit_hash \
+        | grep -Ei '(fix|feat|docs|chore|ci|refactor)' \
+        | sed -E 's/^Merged PR [0-9]+://i' \
+        | sed -E 's/^ //')
+    body=$(git log --pretty=format:"%b" -n 1 $commit_hash \
+        | awk '/Related work items:/ {sub(/Related work items:/, ""); print $0}')
+
+    echo "* $subject - $body"
+}
+
+# Iterate over the commits in the specified range and process each one
+# then sort the output by conventional commit scope
+git log --pretty=format:"%h" $previous_release..$new_release | while read -r commit_hash
+do
+    process_commit $commit_hash
+done | \
+    sort -k2,2
